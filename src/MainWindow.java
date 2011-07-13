@@ -176,9 +176,9 @@ public class MainWindow  extends JFrame implements ActionListener, ChangeListene
         String cmbAusgangsdruckListe[] = {"8", "10", "12"};
         cmbAusgangsdruck = new JComboBox(cmbAusgangsdruckListe);
         cmbAusgangsdruck.setEditable(true);
-        String cmbDurchflussmengeListe[] = {"200","400","600","800","1000", "1200"};
+        String cmbDurchflussmengeListe[] = {"200","300","400","500","600","700","800","900","1000","1100","1200","1300","1400","1500","1600","1800","2000","2200","2400"};
         cmbDurchflussmenge = new JComboBox(cmbDurchflussmengeListe);
-        cmbDurchflussmenge.setSelectedIndex(3);
+        cmbDurchflussmenge.setSelectedIndex(6);
         String cmbMindesteingangsdruckListe[] = {"1", "2", "3"};
         cmbMindesteingangsdruck = new JComboBox(cmbMindesteingangsdruckListe);
         cmbMindesteingangsdruck.setSelectedIndex(1);

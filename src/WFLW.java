@@ -91,17 +91,43 @@ public class WFLW{
 	public double calcReibungsverlust(int durchflussmenge){
 		switch(durchflussmenge){
 		case 200:
-			return 0.10;
+			return 0.1;
+		case 300:
+			return 0.2;
 		case 400:
-			return 0.12;
-		case 600:
+			return 0.3;
+		case 500:
 			return 0.5;
+		case 600:
+			return 0.7;
+		case 700:
+			return 0.9;
 		case 800:
-			return 1.0;
+			return 1.1;
+		case 900:
+			return 1.4;
 		case 1000:
-			return 1.5;
+			return 1.7;
+		case 1100:
+			return 2.1;
 		case 1200:
 			return 2.5;
+		case 1300:
+			return 3.0;
+		case 1400:
+			return 3.5;
+		case 1500:
+			return 4.0;
+		case 1600:
+			return 4.5;
+		case 1800:
+			return 5.7;
+		case 2000:
+			return 7.0;
+		case 2200:
+			return 8.4;
+		case 2400:
+			return 10.0;
 		default:
 			return 0;				
 		}

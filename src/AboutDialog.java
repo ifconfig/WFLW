@@ -14,7 +14,7 @@ class AboutDialog extends JDialog implements ActionListener {
     private int jahr = myCal2.get( Calendar.YEAR  );
     private String year = Integer.toString(jahr);
     private String produkt = "Wasserförderung über lange Wegstrecke";
-    private String version = "1.1";
+    private String version = "1.11";
     private String copyright = "GNU GPL v3 "+year+" Georg Heyne";
     private String beschreibung1 = "In Gedenken an den KatSchutz-Zug";
     private String beschreibung2 = "\"Löschen/Wasserversorgung Brand-Erbisdorf\"";
