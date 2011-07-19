@@ -1,8 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-
-
+import javax.swing.JOptionPane;
 
 
 public class WFLW{
@@ -139,13 +138,14 @@ public class WFLW{
 	
 	public boolean calcEnginePoints(double pa, int durchflussmenge, double pe){	
 		/**
-		 * Errechnet anhand der Wegpunkte die kenauen Punkenabsetzpunkte, mit den Standardvorgaben
+		 * Errechnet anhand der Wegpunkte die genauen Punkenabsetzpunkte, mit den Standardvorgaben
+		 * Es ist dafür vorbereitet, fest gesetzte Pumpen zu berücksichtigen. Das ist erst dann sinvoll,
+		 * wenn der Pumpenstandort geändert werden kann
 		 */
+		if(koordList.isEmpty()) return false;
 		this.pa = pa;
 		this.rv = calcReibungsverlust(durchflussmenge);
 		this.pe = pe;
-		if(koordList.isEmpty()) return false;
-		pumpen.clear();
 		double aktDruck=0;
 		double tmpDruck = 0;
 		double tmpDist = 0;
@@ -153,9 +153,16 @@ public class WFLW{
 		double deltaL = 0;
 		double gesLaenge = 0;
 		
-		// erste Pumpe wird automatisch gesetzt
-		
-		// Berechnung der Pumpenaufstellorte
+		Pumpen fixedPumpen;
+		if(pumpen.size()>=2) fixedPumpen = pumpen.getFixed();
+		else fixedPumpen = new Pumpen();
+		pumpen.clear();
+		Pumpe nextFixedPumpe;
+		if(!fixedPumpen.isEmpty()){
+			nextFixedPumpe = fixedPumpen.get(0);
+			fixedPumpen.removePumpe(0);
+		}
+		else nextFixedPumpe = null;
 		for(int i=0;i<koordList.size()-1;i++){
 			// Entfernung zwischen den Koords
 			tmpDist = NmeaFunc.distM(koordList.get(i), koordList.get(i+1));
@@ -163,30 +170,131 @@ public class WFLW{
 			tmpHoehe = koordList.get(i+1).getHeight() - koordList.get(i).getHeight();
 			// Druckabzug
 			tmpDruck = ((tmpDist*rv/100) + (tmpHoehe/10));
-			// Wenn aktueller Druck unter oder gleich pe dann Pumpe setzen mit erster Koordinate
-			if(aktDruck-tmpDruck <= pe){
-				pumpen.add(new Pumpe(koordList.get(i)));
-				pumpen.get(pumpen.size()-1).setPe(aktDruck);
-				pumpen.get(pumpen.size()-1).setDeltaL(deltaL);
-				gesLaenge += deltaL;
-				pumpen.get(pumpen.size()-1).setGesLaenge(gesLaenge);
-				if(pumpen.size()>=2) pumpen.get(pumpen.size()-1).setDeltaH(pumpen.get(pumpen.size()-1).getHeight() - pumpen.get(pumpen.size()-2).getHeight());
-				aktDruck = pa;
+			if(pumpeIsOnKoord(koordList.get(i),nextFixedPumpe)){
+				nextFixedPumpe.setPe(aktDruck);
+				nextFixedPumpe.setDeltaL(deltaL);
+				nextFixedPumpe.setGesLaenge(gesLaenge);
 				deltaL = 0;
+				aktDruck = nextFixedPumpe.getPa();
+				if(pumpen.size()>=2) nextFixedPumpe.setDeltaH(nextFixedPumpe.getHeight()-pumpen.get(pumpen.size()-1).getHeight());
+				pumpen.add(nextFixedPumpe);
+				// neue nächste fixe Pumpe
+				if(!fixedPumpen.isEmpty()){
+					nextFixedPumpe = fixedPumpen.get(0);
+					fixedPumpen.removePumpe(0);
+				}else nextFixedPumpe = null;
+			}else{
+				if(aktDruck-tmpDruck <= pe){
+					pumpen.add(new Pumpe(koordList.get(i),aktDruck,deltaL,gesLaenge));
+					if(pumpen.size()>=2) pumpen.get(pumpen.size()-1).setDeltaH(pumpen.get(pumpen.size()-1).getHeight() - pumpen.get(pumpen.size()-2).getHeight());
+					aktDruck = pa;
+					deltaL = 0;
+				}		
 			}
 			aktDruck -= tmpDruck;
-			deltaL += tmpDist;
+			deltaL += tmpDist;	
+			gesLaenge += tmpDist;
 		}
-		pumpen.add(new Pumpe(koordList.get(koordList.size()-1)));
-		pumpen.get(pumpen.size()-1).setPe(aktDruck);
-		pumpen.get(pumpen.size()-1).setDeltaL(deltaL);
-		gesLaenge += deltaL;
-		pumpen.get(pumpen.size()-1).setGesLaenge(gesLaenge);
-		if(pumpen.size()>=2) pumpen.get(pumpen.size()-1).setDeltaH(pumpen.get(pumpen.size()-1).getHeight() - pumpen.get(pumpen.size()-2).getHeight());
+		if(pumpeIsOnKoord(koordList.get(koordList.size()-1),nextFixedPumpe)){
+			nextFixedPumpe.setPe(aktDruck);
+			nextFixedPumpe.setDeltaL(deltaL);
+			nextFixedPumpe.setGesLaenge(gesLaenge);
+			if(pumpen.size()>=2) nextFixedPumpe.setDeltaH(nextFixedPumpe.getHeight()-pumpen.get(pumpen.size()-1).getHeight());
+			pumpen.add(nextFixedPumpe);
+		}else{
+			pumpen.add(new Pumpe(koordList.get(koordList.size()-1),aktDruck,deltaL,gesLaenge));
+			if(pumpen.size()>=2) pumpen.get(pumpen.size()-1).setDeltaH(pumpen.get(pumpen.size()-1).getHeight() - pumpen.get(pumpen.size()-2).getHeight());
+		}
 		pumpen.fireTableDataChanged();
 		return true;
 	}
 	
+	public boolean calcEnginePoints(int durchflussmenge, double pe, Pumpen verfPumpen){
+		double aktDruck = 0;
+		double druckVerl;
+		double tmpDist = 0;
+		double tmpHoehe = 0;
+		double gesLaenge = 0;
+		int indexNextVerfPumpe = 0;
+		this.rv = calcReibungsverlust(durchflussmenge);
+		this.pe = pe;
+		
+		//Wenn Koordliste oder verfPumpenListe leer, dann hats sich eh erledigt
+		if(koordList.isEmpty() || verfPumpen.isEmpty()){
+			JOptionPane.showMessageDialog(null, "Die Liste der verfügbaren Pumpen oder Streckenliste ist leer.\nBerechnung wird abgebrochen.", "Berechnungsfehler", JOptionPane.ERROR_MESSAGE); 
+			return false;	
+		}
+		//Reibungskoeffizient holen;
+				
+		//Pumpenliste leeren
+		this.pumpen.clear();
+		
+		//restliche Pumpen setzen;
+		for(int i=0;i<this.koordList.size()-1;i++){
+			//sind noch verfügbare Pumpen vorhanden?
+			if(indexNextVerfPumpe != verfPumpen.size()){
+				//Berechne Druckverlust im kommenden abschnitt
+				// Entfernung zwischen den Koords
+				tmpDist = NmeaFunc.distM(koordList.get(i), koordList.get(i+1));
+				// Delta Höhe
+				tmpHoehe = koordList.get(i+1).getHeight() - koordList.get(i).getHeight();
+				// Druckabzug
+				druckVerl = ((tmpDist*rv/100) + (tmpHoehe/10));
+				
+				//muss Pumpe gesetzt werden?
+				if(aktDruck-druckVerl <= pe){
+					//setze die aktuellen Werte der Pumpe
+					if(!pumpen.isEmpty()){
+						verfPumpen.get(indexNextVerfPumpe).setPe(aktDruck);
+						verfPumpen.get(indexNextVerfPumpe).setDeltaH(koordList.get(i).getHeight()-pumpen.getLast().getHeight());
+						verfPumpen.get(indexNextVerfPumpe).setDeltaL(gesLaenge-pumpen.getLast().getGesLaenge());
+						verfPumpen.get(indexNextVerfPumpe).setGesLaenge(gesLaenge);
+						verfPumpen.get(indexNextVerfPumpe).setKoord(koordList.get(i));
+					}else{
+						verfPumpen.get(indexNextVerfPumpe).setKoord(koordList.get(i));
+					}
+					//nimm nächste Pumpe aus verf. Pumpen
+					pumpen.add(verfPumpen.get(indexNextVerfPumpe));
+					indexNextVerfPumpe++;
+					//vor dem zurücksetzen noch schnell die gesamtlänge aufaddieren
+					gesLaenge += tmpDist;
+					//setze aktDruck nach pa der gesetzten Pumpe
+					aktDruck = pumpen.getLast().getPa();
+				} else{
+					//Mache den nächsten Schritt und aktualisiere die Abschnitsvariablen und den aktDruck
+					gesLaenge += tmpDist;
+				}
+				aktDruck -= druckVerl;
+			}else{
+				JOptionPane.showMessageDialog(null, "Keine Pumpe mehr verfügbar.\nBerechnung wird abgebrochen.", "Berechnungsfehler", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+		}
+		//sind noch verfügbare Pumpen vorhanden?
+		if(indexNextVerfPumpe != verfPumpen.size()){
+			//setze die aktuellen Werte der Pumpe
+			verfPumpen.get(indexNextVerfPumpe).setPe(aktDruck);
+			verfPumpen.get(indexNextVerfPumpe).setKoord(koordList.get(koordList.size()-1));
+			verfPumpen.get(indexNextVerfPumpe).setDeltaH(koordList.get(koordList.size()-1).getHeight()-pumpen.getLast().getHeight());
+			verfPumpen.get(indexNextVerfPumpe).setDeltaL(gesLaenge-pumpen.getLast().getGesLaenge());
+			verfPumpen.get(indexNextVerfPumpe).setGesLaenge(gesLaenge);
+			//setze E-stellenpumpe;
+			pumpen.add(verfPumpen.get(indexNextVerfPumpe));
+			indexNextVerfPumpe++;
+			pumpen.fireTableDataChanged();
+			return true;
+		}else{	
+			JOptionPane.showMessageDialog(null, "Keine Pumpe für die Einsatzstelle verfügbar.\nBerechnung wird abgebrochen.", "Berechnungsfehler", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+	}
+	private boolean pumpeIsOnKoord(Koordinate koordinate, Pumpe nextFixedPumpe) {
+		if(nextFixedPumpe != null){
+			return(koordinate.getLat()==nextFixedPumpe.getLat() && koordinate.getLon()==nextFixedPumpe.getLon());
+		}
+		return false;
+	}
+
 	public int anzGesetzterPumpen(){
 		return pumpen.size();
 	}

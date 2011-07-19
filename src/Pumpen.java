@@ -1,4 +1,5 @@
 import java.util.*;
+
 import javax.swing.table.AbstractTableModel;
 
 public class Pumpen extends AbstractTableModel {
@@ -6,7 +7,7 @@ public class Pumpen extends AbstractTableModel {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private List<Pumpe> pumpen;
+	protected List<Pumpe> pumpen;
 	
 	public Pumpen(){
 		pumpen = new ArrayList<Pumpe>();
@@ -48,31 +49,51 @@ public class Pumpen extends AbstractTableModel {
 		Pumpe tmpPumpe = pumpen.get(arg0);
 		switch(arg1){
 		case 0:
-			return pumpen.indexOf(tmpPumpe)+1;
+			if(pumpen.indexOf(tmpPumpe)==0)return "Wasserentnahme";
+			else if(pumpen.indexOf(tmpPumpe)==pumpen.size()-1)return "Einsatzstelle";
+			else return String.format("VKS%d", pumpen.indexOf(tmpPumpe));
 		case 1:
-			return String.format("%.2f", tmpPumpe.getDeltaL());
+			return tmpPumpe.getDeltaL();
 		case 2:
-			return String.format("%.2f", tmpPumpe.getDeltaH());
+			return tmpPumpe.getDeltaH();
 		case 3:
-			return String.format("%.2f", tmpPumpe.getPe());
+			return tmpPumpe.getPe();
 		case 4:
-			return String.format("%.5f", tmpPumpe.getLat());
+			return tmpPumpe.getLat();
 		case 5:
-			return String.format("%.5f", tmpPumpe.getLon());
+			return tmpPumpe.getLon();
 		case 6:
-			return String.format("%.2f", tmpPumpe.getGesLaenge());
+			return tmpPumpe.getGesLaenge();
 		case 7:
-			return String.format("%.2f", tmpPumpe.getHeight());
+			return tmpPumpe.getHeight();
+		//case 8:
+		//	return tmpPumpe.isFixed();
 		default:
 		return null;		
 		}
+	}
+
+	public Pumpen(List<Pumpe> pumpen) {
+		this.pumpen = pumpen;
+	}
+
+	public Pumpen(Pumpen pumpen) {
+		this.pumpen = pumpen.getPumpen();
+	}
+
+	public List<Pumpe> getPumpen() {
+		return pumpen;
+	}
+
+	public void setPumpen(List<Pumpe> pumpen) {
+		this.pumpen = pumpen;
 	}
 
 	@Override
 	public String getColumnName( int columnIndex ){
 		switch(columnIndex){
 		case 0:
-			return "Nr";
+			return "Pumpe";
 		case 1:
 			return "DeltaL";
 		case 2:
@@ -87,8 +108,57 @@ public class Pumpen extends AbstractTableModel {
 			return "Ges.Länge";
 		case 7:
 			return "Ges.Höhe";
+		//case 8:
+		//	return "fest";
 		default:
 			return "";
 		}
 	}	
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Class getColumnClass(int columnIndex) {
+        switch( columnIndex ){
+            case 0: return String.class;
+            case 1: return Double.class;
+            case 2: return Double.class;
+            case 3: return Double.class;
+            case 4: return Double.class;
+            case 5: return Double.class;
+            case 6: return Double.class;
+            case 7: return Double.class;
+            //case 8: return Boolean.class;
+            default: return null;
+        }
+    }
+	
+	// Jede Zelle ist editierbar
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        if(columnIndex == 8)return true;
+        else return false;
+    }
+    
+ // Wird aufgerufen, falls der Wert einer Zelle verändert wurde
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+        switch( columnIndex ){
+            case 8:
+                pumpen.get(rowIndex).setFixed((Boolean)aValue);
+                break;
+        }
+    }
+	
+	public Pumpen getFixed(){
+		Pumpen fixedPumpen = new Pumpen();
+		for(Pumpe aktPumpe:pumpen){
+			if(aktPumpe.isFixed()) fixedPumpen.add(aktPumpe);
+		}
+		return fixedPumpen;
+	}
+
+	public Pumpe getLast(){
+		return this.get(this.size()-1);
+	}
+	
+	public void removePumpe(int index){
+		pumpen.remove(index);
+	}
 }

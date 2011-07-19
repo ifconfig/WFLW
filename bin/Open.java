@@ -35,7 +35,6 @@ public class Open {
 						koord.add(new Koordinate());
 						// We read the attributes from this tag and add the date
 						// attribute to our object
-						@SuppressWarnings("unchecked")
 						Iterator<Attribute> attributes = startElement.getAttributes();
 						while (attributes.hasNext()) {
 							Attribute attribute = attributes.next();

@@ -2,8 +2,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.Point;
-import java.awt.Toolkit;
+import java.awt.MediaTracker;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -18,74 +17,73 @@ import org.jdesktop.swingx.JXMapKit;
 import org.jdesktop.swingx.mapviewer.GeoPosition;
 
 
-public class MainWindow implements ActionListener, ChangeListener{
+public class MainWindow  extends JFrame implements ActionListener, ChangeListener{
 	/**
 	 * Das Hauptfenster der Anwendung
 	 */
 	private static final long serialVersionUID = 1L;
 	//verfügbare Items
 	//Hauptfenster
-	private JFrame mainFrame;
+	JFrame mainFrame;
 	//Panels für Registerkarten
-	private JPanel panelVar1;
-	private JPanel panelVar2;
-	private JPanel panelVar1_topGrid;
+	JPanel panelVar1;
+	JPanel panelVar2;
+	JPanel panelVar1_topGrid;
 	//Register
-	private JTabbedPane register;
+	JTabbedPane register;
 	//Menü
-	private JMenuBar 	bar;
-	private JMenu 		menuDatei;
-	private JMenu 		menuOptions;
-	private JMenu		menuHelp;
-	private JMenuItem 	itemOeffnen;
-	private JMenuItem 	itemPrintKoords;
-	private JMenuItem 	itemExport2KML;
-	private JMenuItem	itemAbout;
-	private JMenuItem	itemInvertKoords;
-	private JCheckBoxMenuItem cbToggleDrawNames;
+	JMenuBar 	bar;
+    JMenu 		menuDatei;
+    JMenu 		menuOptions;
+    JMenu		menuHelp;
+    JMenuItem 	itemOeffnen;
+    JMenuItem 	itemPrintKoords;
+    JMenuItem 	itemExport2KML;
+    JMenuItem	itemAbout;
+    JMenuItem	itemInvertKoords;
+    JCheckBoxMenuItem cbToggleDrawNames;
     //Toolbars und deren Buttons
-	private JToolBar	toolbar;
-	private JButton		btExport2KML;
-	private JButton		btInvertKoords;
-	private JButton		btOpen;
-	private JButton		btToggleDrawNames;
-	private JButton		btVerfPumpen;
+    JToolBar	toolbar;
+    JButton		buttonExport2KML;
+    JButton		buttonInvertKoords;
+    JButton		buttonOpen;
+    JButton		buttonToggleDrawNames;
     final Icon 	iconExport2KML;
     final Icon 	iconInvertKoords;
     final Icon 	iconOpen;
     final Icon	iconToggleDrawNames_on;
     final Icon	iconToggleDrawNames_off;
-    final Icon 	iconVerfPumpen;
-    private Image	imageTitelIcon;
 
     //Textfeld
-    private JTextArea 	textfeld;
+    JTextArea 	textfeld;
     //Buttons außer Toolbarbuttons
-    private JButton buttonCalc;
+    JButton buttonCalc;
     //Labels
-    private JLabel lblAusgangsdruck;
-    private JLabel lblDurchflussmenge;
-    private JLabel lblMindeseingangsdruck;
+    JLabel lblAusgangsdruck;
+    JLabel lblDurchflussmenge;
+    JLabel lblMindeseingangsdruck;
     //Comboboxen
-    private JComboBox cmbAusgangsdruck;
-    private JComboBox cmbDurchflussmenge;
-    private JComboBox cmbMindesteingangsdruck;
+    JComboBox cmbAusgangsdruck;
+    JComboBox cmbDurchflussmenge;
+    JComboBox cmbMindesteingangsdruck;
     //Hilfsobjekte
-    private WFLW wflw = null;
+    WFLW wflw = null;
     //Scrollpanes
-    private JScrollPane scrollPaneTextfeld;
-    private JScrollPane scrollPaneTabelle;
+    JScrollPane scrollPaneTextfeld;
+    JScrollPane scrollPaneTabelle;
     //Tabelle
-    private PumpenTable pumpentabelle;
+    JTable pumpentabelle;
     //Splitter
-    private JSplitPane panelVar1SplitPane;
+    JSplitPane panelVar1SplitPane;
     //Kartenmaterial
-    private JXMapKit map;
-    private OwnWaypointPainter painter;
+    JXMapKit map;
+    OwnWaypointPainter painter;
+	//Bilder und Bildtracker
+	Image img;
+	MediaTracker imgTrack;
 	//zusätzliche Dialoge
-    private JFileChooser fileDialog;
-    private AboutDialog aboutDialog;
-    private PumpenFenster pumpenFenster;
+	JFileChooser fileDialog;
+	AboutDialog aboutDialog;
     
     
 	public MainWindow(WFLW wflw) {	
@@ -134,35 +132,34 @@ public class MainWindow implements ActionListener, ChangeListener{
         bar.add(menuOptions);
         bar.add(menuHelp);
         //Toolsbars und deren Buttons
-        toolbar				= new JToolBar();        
+        toolbar				= new JToolBar();
+        buttonExport2KML	= new JButton();
+        buttonInvertKoords 	= new JButton();
+        buttonOpen			= new JButton();
+        buttonToggleDrawNames= new JButton();
         iconExport2KML	 	= new ImageIcon(this.getClass().getResource("export2KML.gif"));
         iconInvertKoords 	= new ImageIcon(this.getClass().getResource("invertKoords.gif"));
         iconOpen		 	= new ImageIcon(this.getClass().getResource("open.gif"));
         iconToggleDrawNames_on 	= new ImageIcon(this.getClass().getResource("toggleDrawName_on.gif"));
         iconToggleDrawNames_off	= new ImageIcon(this.getClass().getResource("toggleDrawName_off.gif"));
-        iconVerfPumpen		= new ImageIcon(this.getClass().getResource("verfPumpen.gif"));
-        imageTitelIcon		= Toolkit.getDefaultToolkit().getImage(getClass().getResource("pumpe_icon_32x32.gif"));
-        btExport2KML	= new JButton(iconExport2KML);
-        btExport2KML.setToolTipText("Ergebnis in KML exportieren");
-        btExport2KML.setEnabled(false);
-        btInvertKoords 	= new JButton(iconInvertKoords);
-        btInvertKoords.setToolTipText("Start/Ziel tauschen");
-        btInvertKoords.setEnabled(false);
-        btOpen			= new JButton(iconOpen);
-        btOpen.setToolTipText("Streckendatei öffnen");
-        btToggleDrawNames= new JButton(iconToggleDrawNames_on);
-        btToggleDrawNames.setToolTipText("Pumpennamen anzeigen/verstecken");
-        btVerfPumpen = new JButton(iconVerfPumpen);
-        btVerfPumpen.setToolTipText("verfügbare Pumpen verwalten");
         toolbar.setFloatable(false);
         toolbar.setRollover(true);
-        toolbar.add(btOpen);
-        toolbar.add(btExport2KML);
+        buttonExport2KML.setIcon(iconExport2KML);
+        buttonExport2KML.setToolTipText("Ergebnis in KML exportieren");
+        buttonExport2KML.setEnabled(false);
+        buttonInvertKoords.setIcon(iconInvertKoords);
+        buttonInvertKoords.setToolTipText("Start/Ziel tauschen");
+        buttonInvertKoords.setEnabled(false);
+        buttonOpen.setIcon(iconOpen);
+        buttonOpen.setToolTipText("Streckendatei öffnen");
+        buttonToggleDrawNames.setIcon(iconToggleDrawNames_on);
+        buttonToggleDrawNames.setToolTipText("Pumpennamen anzeigen/verstecken");
+        toolbar.add(buttonOpen);
+        toolbar.add(buttonExport2KML);
         toolbar.addSeparator();
-        toolbar.add(btVerfPumpen);
-        toolbar.add(btInvertKoords);
+        toolbar.add(buttonInvertKoords);
         toolbar.addSeparator();
-        toolbar.add(btToggleDrawNames);
+        toolbar.add(buttonToggleDrawNames);
         //Textfeld
         textfeld = new JTextArea(4,1);
         scrollPaneTextfeld = new JScrollPane(textfeld);
@@ -179,17 +176,16 @@ public class MainWindow implements ActionListener, ChangeListener{
         String cmbAusgangsdruckListe[] = {"8", "10", "12"};
         cmbAusgangsdruck = new JComboBox(cmbAusgangsdruckListe);
         cmbAusgangsdruck.setEditable(true);
-        String cmbDurchflussmengeListe[] = {"200","300","400","500","600","700","800","900","1000","1100","1200","1300","1400","1500","1600","1800","2000","2200","2400"};
+        String cmbDurchflussmengeListe[] = {"200","400","600","800","1000", "1200"};
         cmbDurchflussmenge = new JComboBox(cmbDurchflussmengeListe);
-        cmbDurchflussmenge.setSelectedIndex(6);
+        cmbDurchflussmenge.setSelectedIndex(3);
         String cmbMindesteingangsdruckListe[] = {"1", "2", "3"};
         cmbMindesteingangsdruck = new JComboBox(cmbMindesteingangsdruckListe);
         cmbMindesteingangsdruck.setSelectedIndex(1);
         cmbMindesteingangsdruck.setEditable(true);
         
         //Tabellen
-        pumpentabelle = new PumpenTable(wflw.getPumpen());
-        pumpentabelle.addMouseListener(pumpentabelle);
+        pumpentabelle = new JTable(wflw.getPumpen());
         scrollPaneTabelle = new JScrollPane(pumpentabelle);
         
         //Splitter
@@ -206,13 +202,13 @@ public class MainWindow implements ActionListener, ChangeListener{
         painter = new OwnWaypointPainter(map);
         map.getMainMap().setOverlayPainter(painter);
                
+		
         //Actionlistener;
         buttonCalc.addActionListener(this);
-        btExport2KML.addActionListener(this);
-        btInvertKoords.addActionListener(this);
-        btOpen.addActionListener(this);
-        btToggleDrawNames.addActionListener(this);
-        btVerfPumpen.addActionListener(this);
+        buttonExport2KML.addActionListener(this);
+        buttonInvertKoords.addActionListener(this);
+        buttonOpen.addActionListener(this);
+        buttonToggleDrawNames.addActionListener(this);
         cbToggleDrawNames.addActionListener(this);
         itemAbout.addActionListener(this);
         itemExport2KML.addActionListener(this);
@@ -228,8 +224,8 @@ public class MainWindow implements ActionListener, ChangeListener{
         itemPrintKoords.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_MASK));
         itemInvertKoords.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_MASK));
         
+        
         //zeigen
-        mainFrame.setIconImage(imageTitelIcon);
         mainFrame.add(toolbar, BorderLayout.PAGE_START);
         mainFrame.add(register, BorderLayout.CENTER);
         //Register 1
@@ -247,8 +243,8 @@ public class MainWindow implements ActionListener, ChangeListener{
        
         //zusätzliche Dialoge
         fileDialog = new JFileChooser();
-        aboutDialog = new AboutDialog(mainFrame);
-        pumpenFenster = new PumpenFenster("verfügbare Pumpen", this);
+        aboutDialog = new AboutDialog(this);
+        
         mainFrame.setVisible(true);
 	}
 
@@ -258,11 +254,10 @@ public class MainWindow implements ActionListener, ChangeListener{
 	public void actionPerformed(ActionEvent arg0) {
 		if		(arg0.getSource() == this.cbToggleDrawNames)	toogleDrawNames();
 		else if	(arg0.getSource() == this.buttonCalc)			funcCalc();
-		else if	(arg0.getSource() == this.btExport2KML)			funcSaveKML();
-		else if	(arg0.getSource() == this.btInvertKoords) 		invertKoords();
-		else if	(arg0.getSource() == this.btOpen) 				funcOeffnen();
-		else if (arg0.getSource() == this.btToggleDrawNames)	toogleDrawNames();
-		else if (arg0.getSource() == this.btVerfPumpen)			pumpenFenster.setVisible(!pumpenFenster.isVisible());
+		else if	(arg0.getSource() == this.buttonExport2KML)		funcSaveKML();
+		else if	(arg0.getSource() == this.buttonInvertKoords) 	invertKoords();
+		else if	(arg0.getSource() == this.buttonOpen) 			funcOeffnen();
+		else if (arg0.getSource() == this.buttonToggleDrawNames)toogleDrawNames();
 		else if	(arg0.getSource() == this.itemAbout)			aboutDialog.setVisible(true);
 		else if	(arg0.getSource() == this.itemExport2KML)		funcSaveKML();
 		else if	(arg0.getSource() == this.itemInvertKoords) 	invertKoords();
@@ -271,8 +266,8 @@ public class MainWindow implements ActionListener, ChangeListener{
 	}
 	
 	private void toogleDrawNames() {
-		 if(painter.toggleDrawNames()) btToggleDrawNames.setIcon(iconToggleDrawNames_on);
-		 else btToggleDrawNames.setIcon(iconToggleDrawNames_off);
+		 if(painter.toggleDrawNames()) buttonToggleDrawNames.setIcon(iconToggleDrawNames_on);
+		 else buttonToggleDrawNames.setIcon(iconToggleDrawNames_off);
 		 
 		 map.repaint();
 	}
@@ -280,7 +275,8 @@ public class MainWindow implements ActionListener, ChangeListener{
 
 	private void invertKoords() {
 		wflw.invertKoords();
-		funcCalc();
+		textfeld.append("Strecke wurde umgedreht. Neuberechnung erforderlich!\n");
+		if(register.getSelectedIndex()==1) funcCalc();
 	}
 
 	@Override
@@ -311,8 +307,8 @@ public class MainWindow implements ActionListener, ChangeListener{
 	}
 	private void setAllEnabled() {
 		buttonCalc.setEnabled(true);
-		btExport2KML.setEnabled(true);
-		btInvertKoords.setEnabled(true);
+		buttonExport2KML.setEnabled(true);
+		buttonInvertKoords.setEnabled(true);
 		itemPrintKoords.setEnabled(true);
 		itemExport2KML.setEnabled(true);
 		itemInvertKoords.setEnabled(true);
@@ -334,8 +330,6 @@ public class MainWindow implements ActionListener, ChangeListener{
 		if (filename != null) Save.saveKML(filename, wflw.getPumpen(), wflw.getKoordList());		
 	}
 	private void funcCalc() {
-		Boolean calcDone = false;
-		
 		textfeld.setText("");
     	textfeld.append("Pumpenstandortberechnung\nAusgangsdruck: " + 
     			Double.parseDouble((String)cmbAusgangsdruck.getSelectedItem()) +
@@ -344,38 +338,18 @@ public class MainWindow implements ActionListener, ChangeListener{
     			"l/min\nReibungsverlust: " +
     			wflw.calcReibungsverlust(Integer.parseInt((String)cmbDurchflussmenge.getSelectedItem())) + 
     			"bar/100m\n");
-    	//Werden die vorgegebenen Pumpen benutzt?
-    	if(pumpenFenster.verfPumpenBeachten()){
-    		textfeld.append("Nutze die vorgegebenen Pumpen");
-    		calcDone = wflw.calcEnginePoints(
-    									Integer.parseInt((String)cmbDurchflussmenge.getSelectedItem()),
-    									Double.parseDouble((String)cmbMindesteingangsdruck.getSelectedItem()),
-    									pumpenFenster.getVerfPumpen());
-    	}else{
-    		calcDone = wflw.calcEnginePoints(	
-		        			Double.parseDouble((String)cmbAusgangsdruck.getSelectedItem()), 
-		        			Integer.parseInt((String)cmbDurchflussmenge.getSelectedItem()),
-		        			Double.parseDouble((String)cmbMindesteingangsdruck.getSelectedItem()));
+    	if(wflw.calcEnginePoints(	
+    			Double.parseDouble((String)cmbAusgangsdruck.getSelectedItem()), 
+    			Integer.parseInt((String)cmbDurchflussmenge.getSelectedItem()),
+    			Double.parseDouble((String)cmbMindesteingangsdruck.getSelectedItem()))){
+        	funcDrawMap();
     	}
-    	if(calcDone) funcDrawMap();
-    	else System.out.println("Fehler in der Berechnung");
+    		
 	}
 	private void funcDrawMap() {
 			Koordinate k = wflw.getMitte();
 			painter.setWflw(wflw);
 			map.setAddressLocation(new GeoPosition(k.getLat(), k.getLon()));
 			map.repaint();
-	}
-	
-	public void setEnabledPaEingabe(Boolean enable){
-		cmbAusgangsdruck.setEnabled(enable);
-	}
-	
-	public Image getIconImage(){
-		return mainFrame.getIconImage();
-	}
-	
-	public Point getLocationForChild(){
-		return new Point(mainFrame.getLocation().x+(int)mainFrame.getWidth(), mainFrame.getLocation().y);
 	}
 }

@@ -46,17 +46,6 @@ public class Koordinate {
 		setHeight(newKoord.getHeight());
 	}
 	
-	public void setKoord(double lat, double lon){
-		this.lat = lat;
-		this.lon = lon;
-	}
-	
-	public void setKoord(Koordinate koord){
-		this.lat = koord.getLat();
-		this.lon = koord.getLon();
-		this.height = koord.getHeight();
-	}
-	
 	String string(){
 		return String.format("Latitude: %.5f\tLongitude: %.5f\tHöhe: %.2f", lat, lon, height);
 	}

@@ -5,20 +5,6 @@ public class Pumpe extends Koordinate {
 	private double deltaH;
 	private double pe;
 	private double gesLaenge;
-	private boolean fixed;
-	
-	public boolean isFixed() {
-		return fixed;
-	}
-
-	public void setFixed(boolean fixed) {
-		this.fixed = fixed;
-	}
-
-	public boolean toggleFixed(){
-		fixed = !fixed;
-		return fixed;
-	}
 	
 	public double getPa() {
 		return pa;
@@ -77,7 +63,6 @@ public class Pumpe extends Koordinate {
 		deltaH = 0;
 		pe  = 0;
 		gesLaenge = 0;
-		fixed = false;
 	}
 	
 	// Pumpe mit Ausgangsdruck erzeugen und Koordinaten
@@ -88,7 +73,6 @@ public class Pumpe extends Koordinate {
 		deltaH = 0;
 		pe = 0;
 		gesLaenge = 0;
-		fixed = false;
 	}
 	
 	Pumpe(Koordinate newKoord){
@@ -98,19 +82,8 @@ public class Pumpe extends Koordinate {
 		deltaH = 0;
 		pe = 0;
 		gesLaenge = 0;
-		fixed = false;
 	} 
 	
-	public Pumpe(Koordinate koordinate, double aktDruck, double deltaL, double gesLaenge) {
-		super(koordinate);
-		this.pa = 8;
-		this.deltaL = deltaL;
-		this.deltaH = 0;
-		this.pe = aktDruck;
-		this.gesLaenge = gesLaenge;
-		this.fixed = false;
-	}
-
 	String string(){
 		return String.format("Pe:%.2fbar\tDeltaL:%.2fm\tDeltaH:%.2fm\tLat:%.5f\t Lon:%.5f\tHöhe:%.2fm", pe, deltaL, deltaH, getLat(), getLon(), getHeight());
 	}
