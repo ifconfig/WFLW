@@ -1,0 +1,7 @@
+Wasserförderung über lange Wegstrecke
+
+Dieses Programm soll die Standorte der Verstärkerpumpen bei Wasserförderung über lange Wegstrecke berechnen. Dazu werden NMEA-Logs oder GPL-Files eingelesen und Ausgewertet. Die Pumpenstandorte werden in einer Tabelle, sowie in einer Karte angezeigt.
+
+Creative Commons Lizenzvertrag
+
+Creative Commons Lizenzvertrag WFLW von Georg H. steht unter einer Creative Commons Namensnennung-Nicht-kommerziell-Weitergabe unter gleichen Bedingungen 3.0 Unported Lizenz. 
